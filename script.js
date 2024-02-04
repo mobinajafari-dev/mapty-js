@@ -20,6 +20,10 @@ class Workout {
       months[this.date.getMonth()]
     } ${this.date.getDate()}`;
   }
+
+  click() {
+    this.clicks++;
+  }
 }
 
 class Running extends Workout {
@@ -52,7 +56,7 @@ class Cycling extends Workout {
   }
 }
 
-const run1 = new Running();
+// const run1 = new Running();
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -86,14 +90,13 @@ class App {
   }
 
   _getPosition() {
-    if (navigator.geolocation) {
+    if (navigator.geolocation)
       navigator.geolocation.getCurrentPosition(
         this._loadMap.bind(this),
         function (error) {
           alert(`${error.message}`);
         }
       );
-    }
   }
 
   _loadMap(position) {
@@ -104,10 +107,10 @@ class App {
 
     this.#map = L.map('map').setView(coords, this.#mapZoomLevel);
 
-    L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
-      attribution:
-        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-    }).addTo(this.#map);
+    // L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
+    //   attribution:
+    //     '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    // }).addTo(this.#map);
 
     L.marker(coords).addTo(this.#map).bindPopup("You're here !").openPopup();
 
@@ -115,9 +118,15 @@ class App {
     this.#map.on('click', this._showForm.bind(this));
 
     this.#workouts.forEach(work => {
-      this._renderWorkout(work);
+      // this._renderWorkout(work);
       this._renderWorkoutMarker(work);
     });
+  }
+
+  _showForm(mapE) {
+    this.#mapEvent = mapE;
+    form.classList.remove('hidden');
+    inputDistance.focus();
   }
 
   _hideForm() {
@@ -129,10 +138,15 @@ class App {
         '';
 
     form.style.display = 'none';
-    form.classList.add(hidden);
+    form.classList.add('hidden');
     setTimeout(() => {
       form.style.display = 'grid';
     }, 1000);
+  }
+
+  _toggleElavationField() {
+    inputElevation.closest('.form__row').classList.toggle('form__row--hidden');
+    inputCadence.closest('.form__row').classList.toggle('form__row--hidden');
   }
 
   _newWorkout(e) {
@@ -146,10 +160,8 @@ class App {
     const type = inputType.value;
     const distance = +inputDistance.value;
     const duration = +inputDuration.value;
-
-    let workout;
-
     const { lat, lng } = this.#mapEvent.latlng;
+    let workout;
 
     // if workout running, create running object
 
@@ -195,17 +207,6 @@ class App {
 
     // render workout on the list
     this._renderWorkout(workout);
-  }
-
-  _showForm(mapE) {
-    this.#mapEvent = mapE;
-    form.classList.remove('hidden');
-    inputDistance.focus();
-  }
-
-  _toggleElavationField() {
-    inputElevation.closest('.form__row').classList.toggle('form__row--hidden');
-    inputCadence.closest('.form__row').classList.toggle('form__row--hidden');
   }
 
   _renderWorkoutMarker(workout) {
@@ -280,6 +281,8 @@ class App {
     form.insertAdjacentHTML('afterend', html);
   }
   _moveToPopup(e) {
+    if (!this.#map) return;
+
     const workoutEl = e.target.closest('.workout');
 
     if (!workoutEl) return;
@@ -300,6 +303,7 @@ class App {
   }
   _getLocalStorage() {
     const data = JSON.parse(localStorage.getItem('workouts'));
+
     if (!data) return;
 
     this.#workouts = data;
@@ -308,6 +312,7 @@ class App {
       this._renderWorkout(work);
     });
   }
+
   _reset() {
     localStorage.removeItem('workouts');
     location.reload();
